@@ -72,7 +72,9 @@ var game = (function(Phaser) {
                 self.scoreText.content = "Safe Crossings: " + self.safeCrossings;
             } else {
                 self.gameOver = true;
-                self.game.add.text (130, self.game.world.height * 0.4, "Game Over!", { font: "64px Arial", fill: "#F00" });
+                self.game.add.text(130, self.game.world.height * 0.35, "Game Over!", { font: "64px Arial", fill: "#F00" });
+                self.game.add.text(50, self.game.world.height * 0.35 + 80, "You need to look left, right, and stop!", self.badFont);
+                return;
             }
 
             self.safeStop = false;
