@@ -110,7 +110,6 @@ var game = (function(Phaser) {
     };
 
     self.render = function() {
-        self.game.debug.renderCameraInfo(self.game.camera, 16, 16);
     };
 
     self.go = function() {
