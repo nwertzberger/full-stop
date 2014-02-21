@@ -4,6 +4,13 @@ var Phaser = Phaser || window.Phaser || null;
 
 var game = (function(Phaser) {
     var self = this;
+    self.responses = [
+        "You need to stop, look left, and look right!",
+        "You need to stop, look left, and look right!",
+        "Got a little too much speed there!",
+        "You'll have to stop sooner!",
+        "Drive slower!"
+    ];
 
     self.preload = function() {
         self.game.load.image('rail', 'images/rail.png');
@@ -15,10 +22,8 @@ var game = (function(Phaser) {
         self.obstacles = self.game.add.group();
 
         self.rail = self.obstacles.create(0,0, 'rail');
-        self.rail.body.maxVelocity.y = 200;
-        self.rail.body.minVelocity.y = 0;
 
-        self.car = self.game.add.sprite(self.game.world.width/2 - 150,300, 'car');
+        self.car = self.game.add.sprite(self.game.world.width/2 - 120,300, 'car');
 
         self.badFont ={ font: "32px Arial", fill: "#F00" };
         self.goodFont ={ font: "32px Arial", fill: "#0F0" };
@@ -31,6 +36,7 @@ var game = (function(Phaser) {
         self.lookedLeft = false;
         self.lookedRight = false;
         self.gameOver = false;
+        self.nextSwitch = 0;
 
         self.cursors = self.game.input.keyboard.createCursorKeys();
     };
@@ -41,9 +47,9 @@ var game = (function(Phaser) {
         }
 
         if (self.cursors.up.isDown) {
-            self.rail.body.acceleration.y = 200;
+            self.rail.body.acceleration.y = 200 + self.safeCrossings * 10;
         } else if (self.cursors.down.isDown) {
-            self.rail.body.acceleration.y = -300;
+            self.rail.body.acceleration.y = -400 + self.safeCrossings * 10;
         }
 
         if (self.cursors.left.isDown) {
@@ -54,15 +60,27 @@ var game = (function(Phaser) {
             self.lookRightText.font = self.goodFont;
         }
 
-        if (self.rail.body.y > self.game.world.height) {
+        if (self.rail.body.y > self.game.world.height + self.nextSwitch) {
+            self.nextSwitch = Math.random() * 400;
             self.rail.body.y = 0;
             self.passedRail = false;
+            self.safeStop = false;
+            self.lookedLeft = false;
+            self.lookedRight = false;
+            self.stopText.font = self.badFont;
+            self.lookLeftText.font = self.badFont;
+            self.lookRightText.font = self.badFont;
         }
+
         if (self.rail.body.velocity.y < 0) {
             self.rail.body.velocity.y = 0;
             self.rail.body.acceleration.y = 0;
             self.safeStop = true;
             self.stopText.font = self.goodFont;
+        }
+        if (self.rail.body.velocity.y > 400 
+                && self.rail.body.acceleration.y > 0) {
+            self.rail.body.acceleration.y = self.safeCrossings * 20;
         }
 
         if (self.rail.body.y > self.car.body.y && !self.passedRail) {
@@ -72,18 +90,10 @@ var game = (function(Phaser) {
                 self.scoreText.content = "Safe Crossings: " + self.safeCrossings;
             } else {
                 self.gameOver = true;
-                self.game.add.text(130, self.game.world.height * 0.35, "Game Over!", { font: "64px Arial", fill: "#F00" });
-                self.game.add.text(50, self.game.world.height * 0.35 + 80, "You need to look left, right, and stop!", self.badFont);
+                self.game.add.text(self.game.world.width * .5 - 170, self.game.world.height * 0.35, "Game Over!", { font: "64px Arial", fill: "#F00" });
+                self.game.add.text(50, self.game.world.height * 0.35 + 80, self.responses[self.safeCrossings % 5], self.badFont);
                 return;
             }
-
-            self.safeStop = false;
-            self.lookedLeft = false;
-            self.lookedRight = false;
-            
-            self.stopText.font = self.badFont;
-            self.lookLeftText.font = self.badFont;
-            self.lookRightText.font = self.badFont;
         }
     };
 
@@ -93,7 +103,7 @@ var game = (function(Phaser) {
 
     self.go = function() {
         self.game = new Phaser.Game(
-                640, 480,
+                700, 500,
                 Phaser.AUTO,
                 'game-window', 
                 self);
