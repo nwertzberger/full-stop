@@ -15,21 +15,26 @@ var game = (function(Phaser) {
     self.preload = function() {
         self.game.load.image('rail', 'images/rail.png');
         self.game.load.image('car', 'images/car.png');
+        self.game.load.image('stripe', 'images/stripe.png');
     };
 
     self.create = function() {
         self.game.stage.backgroundColor= "#444444";
-        self.obstacles = self.game.add.group();
+        self.roadStripes = [];
 
-        self.rail = self.obstacles.create(0,0, 'rail');
+        for(var i=0; i < 4; i++) {
+        self.roadStripes.push(self.game.add.sprite(50, self.world.height / 4 * i, 'stripe'));
+        }
 
-        self.car = self.game.add.sprite(self.game.world.width/2 - 120,300, 'car');
+        self.rail = self.game.add.sprite(0,0, 'rail');
+
+        self.car = self.game.add.sprite(self.game.world.width * 0.5 - 120,300, 'car');
 
         self.badFont ={ font: "32px Arial", fill: "#F00" };
         self.goodFont ={ font: "32px Arial", fill: "#0F0" };
         self.scoreText = self.game.add.text (16, 16, "Safe Crossings: 0", { font: "32px Arial", fill: "#FFF" });
         self.lookLeftText = self.game.add.text (16, self.game.world.height - 100, "Look Left!", self.badFont);
-        self.stopText = self.game.add.text (self.game.world.width * .5 - 40, 100,"Stop!", self.badFont);
+        self.stopText = self.game.add.text (self.game.world.width * 0.5 - 40, 100,"Stop!", self.badFont);
         self.lookRightText = self.game.add.text (self.game.world.width - 170, self.game.world.height - 100,  "Look Right!", self.badFont);
         self.safeCrossings = 0;
         self.safeStop = false;
@@ -81,6 +86,13 @@ var game = (function(Phaser) {
         if (self.rail.body.velocity.y > 400 
                 && self.rail.body.acceleration.y > 0) {
             self.rail.body.acceleration.y = self.safeCrossings * 20;
+        }
+        for (var i=0; i < self.roadStripes.length; i++) {
+            var stripe = self.roadStripes[i];
+            stripe.body.velocity.y = self.rail.body.velocity.y;
+            if (stripe.body.y > self.game.world.height) {
+                stripe.body.y -= self.game.world.height;
+            }
         }
 
         if (self.rail.body.y > self.car.body.y && !self.passedRail) {
